@@ -23,6 +23,7 @@ import {
   ListItem,
   ListItemText,
 } from "@mui/material";
+import UserInfoCard from "@root/components/base/UserInfoCard";
 
 ChartJS.register(ArcElement, Tooltip, Legend, Title, Colors);
 
@@ -144,7 +145,7 @@ export default function ResumePage() {
     <Box
       sx={{
         maxWidth: "800px",
-        margin: "0 auto",
+        margin: "2rem auto",
         padding: "2rem",
         backgroundColor: "white",
         borderRadius: "8px",
@@ -152,17 +153,32 @@ export default function ResumePage() {
       }}>
       {userData && (
         <>
-          <Typography variant="h4" gutterBottom>
-            {userData.name || username}
-          </Typography>
+          <UserInfoCard
+            title="Name"
+            value={userData.name || (username as string)}
+          />
 
-          <Typography variant="body1" color="textSecondary" gutterBottom>
-            Public Repos: {userData.public_repos}
-          </Typography>
+          <UserInfoCard
+            title="Public Repos"
+            value={String(userData.public_repos)}
+          />
 
-          <Typography variant="body1" color="textSecondary" gutterBottom>
-            Member since: {new Date(userData.created_at).toLocaleDateString()}
-          </Typography>
+          <UserInfoCard
+            title="Member since"
+            value={new Date(userData.created_at).toLocaleDateString()}
+          />
+
+          <Box mt={2}>
+            <a
+              href={`https://github.com/${username}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              style={{ textDecoration: "none" }}>
+              <Typography variant="body2" color="primary">
+                View GitHub Profile
+              </Typography>
+            </a>
+          </Box>
 
           <Divider sx={{ my: 4 }} />
         </>
@@ -186,6 +202,8 @@ export default function ResumePage() {
                   "&:hover": {
                     backgroundColor: "#f0f0f0",
                   },
+                  textDecoration: "none",
+                  color: "inherit",
                 }}>
                 <ListItemText primary={repo.name} />
               </ListItem>
@@ -200,8 +218,9 @@ export default function ResumePage() {
 
       <Divider sx={{ my: 4 }} />
 
-      <Box>
+      <Box sx={{ width: { xs: "100%", md: "75%" }, margin: "0 auto" }}>
         <Typography variant="h6">Languages Used:</Typography>
+
         {Object.keys(languagesCount).length > 0 ? (
           <Pie data={languagesData} />
         ) : (
