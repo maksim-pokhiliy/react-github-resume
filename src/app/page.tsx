@@ -26,8 +26,7 @@ export default function HomePage() {
       display="flex"
       alignItems="center"
       justifyContent="center"
-      height="100vh"
-      px={8}>
+      height="100vh">
       <form
         className="w-full sm:max-w-[400px] flex flex-col gap-10"
         onSubmit={handleSubmit}>
