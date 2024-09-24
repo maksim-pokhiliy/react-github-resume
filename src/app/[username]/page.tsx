@@ -1,7 +1,17 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { useParams } from "next/navigation";
+import { Pie } from "react-chartjs-2";
+
+import {
+  Chart as ChartJS,
+  ArcElement,
+  Tooltip,
+  Legend,
+  Title,
+  Colors,
+} from "chart.js";
 
 import {
   Box,
@@ -13,6 +23,8 @@ import {
   ListItem,
   ListItemText,
 } from "@mui/material";
+
+ChartJS.register(ArcElement, Tooltip, Legend, Title, Colors);
 
 interface IUser {
   login: string;
@@ -27,6 +39,7 @@ interface IRepo {
   name: string;
   html_url: string;
   updated_at: string;
+  language: string | null;
 }
 
 export default function ResumePage() {
@@ -36,6 +49,43 @@ export default function ResumePage() {
   const [repos, setRepos] = useState<IRepo[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+
+  const languagesCount = useMemo(() => {
+    let output = 0;
+
+    if (repos) {
+      output = repos.reduce((acc: any, repo) => {
+        if (repo.language) {
+          acc[repo.language] = (acc[repo.language] || 0) + 1;
+        }
+        return acc;
+      }, {});
+    }
+
+    return output;
+  }, [repos]);
+
+  const languagesData = useMemo(() => {
+    const output = {
+      labels: Object.keys(languagesCount),
+      datasets: [
+        {
+          data: Object.values(languagesCount),
+          backgroundColor: [
+            "rgba(255, 99, 132, 0.6)",
+            "rgba(54, 162, 235, 0.6)",
+            "rgba(255, 206, 86, 0.6)",
+            "rgba(75, 192, 192, 0.6)",
+            "rgba(153, 102, 255, 0.6)",
+            "rgba(255, 159, 64, 0.6)",
+          ],
+          borderWidth: 1,
+        },
+      ],
+    };
+
+    return output;
+  }, [languagesCount]);
 
   useEffect(() => {
     const fetchUserData = async () => {
@@ -126,6 +176,17 @@ export default function ResumePage() {
             </ListItem>
           ))}
         </List>
+      </Box>
+
+      <Divider sx={{ my: 4 }} />
+
+      <Box>
+        <Typography variant="h6">Languages Used:</Typography>
+        {Object.keys(languagesCount).length > 0 ? (
+          <Pie data={languagesData} />
+        ) : (
+          <Typography>No languages data available.</Typography>
+        )}
       </Box>
     </Box>
   );
