@@ -48,7 +48,7 @@ export default function ResumePage() {
   const [userData, setUserData] = useState<IUser | null>(null);
   const [repos, setRepos] = useState<IRepo[]>([]);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState("");
+  const [error, setError] = useState<string>("");
 
   const languagesCount = useMemo(() => {
     let output = 0;
@@ -90,13 +90,21 @@ export default function ResumePage() {
   useEffect(() => {
     const fetchUserData = async () => {
       try {
-        const { data: userData } = await fetch(`/api/user/${username}`).then(
-          (data) => data.json(),
-        );
+        const userResponse = await fetch(`/api/user/${username}`);
 
-        const reposData = await fetch(userData.repos_url).then((data) =>
-          data.json(),
-        );
+        if (!userResponse.ok) {
+          throw new Error(`${userResponse.status}`);
+        }
+
+        const { data: userData }: { data: IUser } = await userResponse.json();
+
+        const reposResponse = await fetch(userData?.repos_url);
+
+        if (!reposResponse.ok) {
+          throw new Error(`${reposResponse.status}`);
+        }
+
+        const reposData = await reposResponse.json();
 
         setUserData(userData);
         setRepos(reposData.slice(0, 10));
@@ -123,7 +131,13 @@ export default function ResumePage() {
   }
 
   if (error) {
-    return <Alert severity="error">{error}</Alert>;
+    return (
+      <Alert severity="error">
+        {error === "404"
+          ? `User "${username}" not found. Please check the username and try again.`
+          : error}
+      </Alert>
+    );
   }
 
   return (
@@ -160,21 +174,27 @@ export default function ResumePage() {
         </Typography>
 
         <List>
-          {repos.map((repo) => (
-            <ListItem
-              key={repo.id}
-              component="a"
-              href={repo.html_url}
-              target="_blank"
-              rel="noopener noreferrer"
-              sx={{
-                "&:hover": {
-                  backgroundColor: "#f0f0f0",
-                },
-              }}>
-              <ListItemText primary={repo.name} />
-            </ListItem>
-          ))}
+          {repos.length > 0 ? (
+            repos.map((repo) => (
+              <ListItem
+                key={repo.id}
+                component="a"
+                href={repo.html_url}
+                target="_blank"
+                rel="noopener noreferrer"
+                sx={{
+                  "&:hover": {
+                    backgroundColor: "#f0f0f0",
+                  },
+                }}>
+                <ListItemText primary={repo.name} />
+              </ListItem>
+            ))
+          ) : (
+            <Typography>
+              No public repositories available for this user.
+            </Typography>
+          )}
         </List>
       </Box>
 
